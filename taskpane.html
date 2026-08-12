@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Sticky Note</title>
+<script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+<style>
+  :root {
+    --yellow: #fff9b0;
+    --yellow-border: #e0c200;
+    --yellow-accent: #f4b400;
+    --ink: #3a3a3a;
+    --muted: #8a7600;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 16px;
+    color: var(--ink);
+    font-size: 14px;
+  }
+  h2 { font-size: 15px; margin: 0 0 4px; }
+  .subject { color: #666; font-size: 12px; margin-bottom: 14px; word-break: break-word; }
+
+  .config-box {
+    background: #f7f7f7;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 14px;
+    font-size: 12px;
+    display: none;
+  }
+  .config-box.visible { display: block; }
+  .config-box input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  .note-block {
+    background: var(--yellow);
+    border: 1px solid var(--yellow-border);
+    border-left: 6px solid var(--yellow-accent);
+    border-radius: 4px;
+    padding: 10px 12px;
+    font-size: 13px;
+    margin-bottom: 12px;
+    display: none;
+  }
+  .note-block.visible { display: block; }
+  .note-block .label { font-weight: 700; font-size: 12px; }
+  .note-block .ts { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  textarea {
+    width: 100%;
+    min-height: 90px;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    resize: vertical;
+    margin-bottom: 10px;
+  }
+  button {
+    background: #2b5fd9;
+    color: #fff;
+    border: none;
+    padding: 9px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    margin-right: 6px;
+  }
+  button:hover { background: #244fb8; }
+  button.secondary { background: #eee; color: #333; }
+  button.secondary:hover { background: #ddd; }
+  button.danger { background: #d9534f; }
+  button.danger:hover { background: #c9302c; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .status { font-size: 12px; margin-top: 8px; }
+  .status.ok { color: #2b7a2b; }
+  .status.err { color: #c9302c; }
+  .loading { color: #888; font-size: 13px; }
+</style>
+</head>
+<body>
+  <h2>📌 Sticky Note</h2>
+  <div class="subject" id="subject">Loading email details...</div>
+
+  <div class="config-box" id="configBox">
+    <label>n8n Webhook URL</label>
+    <input id="webhookUrl" type="text" placeholder="https://acculine135.app.n8n.cloud/webhook/sticky-notes" />
+  </div>
+
+  <div id="loading" class="loading">Checking for existing note...</div>
+
+  <div class="note-block" id="noteBlock">
+    <div class="label">Current note</div>
+    <div id="noteText"></div>
+    <div class="ts" id="noteTs"></div>
+  </div>
+
+  <div id="actions"></div>
+  <div class="status" id="status"></div>
+
+<script>
+let webhookUrl = localStorage.getItem('stickyNotesWebhookUrl') || '';
+let currentMessageId = null;
+let currentSubject = '';
+
+const configBox = document.getElementById('configBox');
+const webhookInput = document.getElementById('webhookUrl');
+webhookInput.value = webhookUrl;
+if (!webhookUrl) configBox.classList.add('visible');
+webhookInput.addEventListener('change', () => {
+  webhookUrl = webhookInput.value.trim();
+  localStorage.setItem('stickyNotesWebhookUrl', webhookUrl);
+});
+
+Office.onReady(() => {
+  const item = Office.context.mailbox.item;
+  currentSubject = item.subject || '(no subject)';
+  document.getElementById('subject').textContent = currentSubject;
+
+  currentMessageId = Office.context.mailbox.convertToRestId(
+    item.itemId,
+    Office.MailboxEnums.RestVersion.v2_0
+  );
+
+  loadNoteState();
+});
+
+async function callWebhook(payload) {
+  if (!webhookUrl) {
+    setStatus('Please set the webhook URL above first.', 'err');
+    configBox.classList.add('visible');
+    return null;
+  }
+  try {
+    const res = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error('Request failed: ' + res.status);
+    return await res.json();
+  } catch (err) {
+    setStatus('Error talking to n8n: ' + err.message, 'err');
+    return null;
+  }
+}
+
+function setStatus(msg, cls) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = 'status ' + (cls || '');
+}
+
+async function loadNoteState() {
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('actions').innerHTML = '';
+  document.getElementById('noteBlock').classList.remove('visible');
+
+  const data = await callWebhook({ action: 'getNote', messageId: currentMessageId });
+  document.getElementById('loading').style.display = 'none';
+
+  const hasActiveNote = data && data.note && data.status === 'active';
+
+  if (hasActiveNote) {
+    const noteBlock = document.getElementById('noteBlock');
+    noteBlock.classList.add('visible');
+    document.getElementById('noteText').textContent = data.note;
+    document.getElementById('noteTs').textContent = data.updatedAt
+      ? 'Updated ' + new Date(data.updatedAt).toLocaleString()
+      : '';
+
+    renderActions(`
+      <button id="editBtn" class="secondary">Edit note</button>
+      <button id="removeBtn" class="danger">Remove note</button>
+    `);
+    document.getElementById('editBtn').addEventListener('click', () => showEditor(data.note));
+    document.getElementById('removeBtn').addEventListener('click', async () => {
+      if (!confirm('Remove this note? It stays saved and recoverable.')) return;
+      setStatus('Removing...', '');
+      const res = await callWebhook({ action: 'removeNote', messageId: currentMessageId });
+      if (res && res.success) {
+        setStatus('Note removed.', 'ok');
+        loadNoteState();
+      } else {
+        setStatus('Failed to remove note.', 'err');
+      }
+    });
+  } else {
+    renderActions(`<button id="addBtn">+ Add sticky note</button>`);
+    document.getElementById('addBtn').addEventListener('click', () => showEditor(''));
+  }
+}
+
+function renderActions(html) {
+  document.getElementById('actions').innerHTML = html;
+}
+
+function showEditor(existingText) {
+  renderActions(`
+    <textarea id="noteInput" placeholder="Type the note...">${existingText || ''}</textarea>
+    <div>
+      <button id="saveBtn">Save note</button>
+      <button id="cancelBtn" class="secondary">Cancel</button>
+    </div>
+  `);
+  document.getElementById('noteInput').focus();
+  document.getElementById('cancelBtn').addEventListener('click', loadNoteState);
+  document.getElementById('saveBtn').addEventListener('click', async () => {
+    const noteText = document.getElementById('noteInput').value.trim();
+    if (!noteText) { setStatus('Note is empty.', 'err'); return; }
+    setStatus('Saving...', '');
+    const res = await callWebhook({
+      action: 'saveNote',
+      messageId: currentMessageId,
+      subject: currentSubject,
+      noteText
+    });
+    if (res && res.success) {
+      setStatus('Saved.', 'ok');
+      loadNoteState();
+    } else {
+      setStatus('Failed to save note.', 'err');
+    }
+  });
+}
+</script>
+</body>
+</html>
