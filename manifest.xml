@@ -12,12 +12,12 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Sticky Note" />
   <Description DefaultValue="Add a sticky note directly to this email." />
-  <IconUrl DefaultValue="https://REPLACE_WITH_YOUR_GITHUB_PAGES_URL/assets/icon-32.png" />
-  <HighResolutionIconUrl DefaultValue="https://REPLACE_WITH_YOUR_GITHUB_PAGES_URL/assets/icon-80.png" />
+  <IconUrl DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/assets/icon-32.png" />
+  <HighResolutionIconUrl DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/assets/icon-80.png" />
   <SupportUrl DefaultValue="https://acculine.com.au" />
 
   <AppDomains>
-    <AppDomain>https://REPLACE_WITH_YOUR_GITHUB_PAGES_URL</AppDomain>
+    <AppDomain>https://harveymclerie.github.io</AppDomain>
   </AppDomains>
 
   <Hosts>
@@ -33,7 +33,7 @@
   <FormSettings>
     <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://REPLACE_WITH_YOUR_GITHUB_PAGES_URL/taskpane.html" />
+        <SourceLocation DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/taskpane.html" />
         <RequestedHeight>450</RequestedHeight>
       </DesktopSettings>
     </Form>
@@ -84,13 +84,13 @@
     </Hosts>
     <Resources>
       <bt:Images>
-        <bt:Image id="icon16" DefaultValue="https://REPLACE_WITH_YOUR_GITHUB_PAGES_URL/assets/icon-16.png" />
-        <bt:Image id="icon32" DefaultValue="https://REPLACE_WITH_YOUR_GITHUB_PAGES_URL/assets/icon-32.png" />
-        <bt:Image id="icon80" DefaultValue="https://REPLACE_WITH_YOUR_GITHUB_PAGES_URL/assets/icon-80.png" />
+        <bt:Image id="icon16" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/assets/icon-16.png" />
+        <bt:Image id="icon32" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/assets/icon-32.png" />
+        <bt:Image id="icon80" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/assets/icon-80.png" />
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="functionFile" DefaultValue="https://REPLACE_WITH_YOUR_GITHUB_PAGES_URL/taskpane.html" />
-        <bt:Url id="taskpaneUrl" DefaultValue="https://REPLACE_WITH_YOUR_GITHUB_PAGES_URL/taskpane.html" />
+        <bt:Url id="functionFile" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/taskpane.html" />
+        <bt:Url id="taskpaneUrl" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/taskpane.html" />
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="groupLabel" DefaultValue="Sticky Notes" />
