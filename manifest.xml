@@ -58,7 +58,7 @@
         <DesktopFormFactor>
           <FunctionFile resid="functionFile" />
           <ExtensionPoint xsi:type="MessageReadCommandSurface">
-            <OfficeTab id="TabDefault">
+            <OfficeTab id="TabReadMessage">
               <Group id="stickyNoteGroup">
                 <Label resid="groupLabel" />
                 <Control xsi:type="Button" id="stickyNoteButton">
