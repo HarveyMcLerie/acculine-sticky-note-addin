@@ -186,17 +186,7 @@ async function loadNoteState() {
       <button id="removeBtn" class="danger">Remove note</button>
     `);
     document.getElementById('editBtn').addEventListener('click', () => showEditor(data.note));
-    document.getElementById('removeBtn').addEventListener('click', async () => {
-      if (!confirm('Remove this note? It stays saved and recoverable.')) return;
-      setStatus('Removing...', '');
-      const res = await callWebhook({ action: 'removeNote', messageId: currentMessageId });
-      if (res && res.success) {
-        setStatus('Note removed.', 'ok');
-        loadNoteState();
-      } else {
-        setStatus('Failed to remove note.', 'err');
-      }
-    });
+    document.getElementById('removeBtn').addEventListener('click', () => showRemoveConfirm());
   } else {
     renderActions(`<button id="addBtn">+ Add sticky note</button>`);
     document.getElementById('addBtn').addEventListener('click', () => showEditor(''));
@@ -205,6 +195,25 @@ async function loadNoteState() {
 
 function renderActions(html) {
   document.getElementById('actions').innerHTML = html;
+}
+
+function showRemoveConfirm() {
+  renderActions(`
+    <div style="font-size:13px;margin-bottom:8px;">Remove this note? It stays saved and recoverable.</div>
+    <button id="confirmRemoveBtn" class="danger">Yes, remove it</button>
+    <button id="cancelRemoveBtn" class="secondary">Cancel</button>
+  `);
+  document.getElementById('cancelRemoveBtn').addEventListener('click', loadNoteState);
+  document.getElementById('confirmRemoveBtn').addEventListener('click', async () => {
+    setStatus('Removing...', '');
+    const res = await callWebhook({ action: 'removeNote', messageId: currentMessageId });
+    if (res && res.success) {
+      setStatus('Note removed.', 'ok');
+      loadNoteState();
+    } else {
+      setStatus('Failed to remove note.', 'err');
+    }
+  });
 }
 
 function showEditor(existingText) {
