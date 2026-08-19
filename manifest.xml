@@ -7,26 +7,32 @@
   xsi:type="MailApp">
 
   <Id>b1f2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d</Id>
-  <Version>1.0.0.0</Version>
+  <Version>1.1.0.0</Version>
   <ProviderName>Acculine</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Sticky Note" />
-  <Description DefaultValue="Add a sticky note directly to this email." />
+  <Description DefaultValue="Add a sticky note directly to this email, or tag it with a day marker." />
   <IconUrl DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/assets/icon-32.png" />
   <HighResolutionIconUrl DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/assets/icon-80.png" />
   <SupportUrl DefaultValue="https://acculine.com.au" />
 
   <AppDomains>
     <AppDomain>https://harveymclerie.github.io</AppDomain>
+    <AppDomain>https://acculine135.app.n8n.cloud</AppDomain>
   </AppDomains>
 
   <Hosts>
     <Host Name="Mailbox" />
   </Hosts>
 
+  <!--
+    NOTE FOR BRAD: MinVersion bumped from 1.8 to 1.15.
+    1.15 is required for the OnMessageSend (Smart Alerts) hook used below.
+    This is a genuine version requirement, not a typo - please don't reduce it.
+  -->
   <Requirements>
     <Sets>
-      <Set Name="Mailbox" MinVersion="1.8" />
+      <Set Name="Mailbox" MinVersion="1.15" />
     </Sets>
   </Requirements>
 
@@ -39,24 +45,48 @@
     </Form>
   </FormSettings>
 
-  <Permissions>ReadItem</Permissions>
+  <!--
+    NOTE FOR BRAD: Permissions bumped from ReadItem to ReadWriteItem.
+    Required so the OnMessageSend handler can strip the day marker from the
+    subject in compose mode before the message actually sends.
+  -->
+  <Permissions>ReadWriteItem</Permissions>
 
   <Rule xsi:type="RuleCollection" Mode="Or">
     <Rule xsi:type="ItemIs" ItemType="Message" FormType="Read" />
+    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Edit" />
   </Rule>
 
   <DisableEntityHighlighting>false</DisableEntityHighlighting>
 
   <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="VersionOverridesV1_0">
     <Requirements>
-      <bt:Sets DefaultMinVersion="1.8">
+      <bt:Sets DefaultMinVersion="1.15">
         <bt:Set Name="Mailbox" />
       </bt:Sets>
     </Requirements>
     <Hosts>
       <Host xsi:type="MailHost">
+
+        <!--
+          Runtime used by the OnMessageSend event handler (onSend.js/html).
+          This is a separate, short-lived runtime from the task pane - it only
+          runs at the moment Harvey clicks Send, strips the day marker if
+          present, then lets the send continue.
+        -->
+        <Runtimes>
+          <Runtime resid="onSendRuntime.Url" lifetime="short">
+            <Override>
+              <Set>
+                <Requirement Name="Mailbox" MinVersion="1.15" />
+              </Set>
+            </Override>
+          </Runtime>
+        </Runtimes>
+
         <DesktopFormFactor>
           <FunctionFile resid="functionFile" />
+
           <ExtensionPoint xsi:type="MessageReadCommandSurface">
             <OfficeTab id="TabReadMessage">
               <Group id="stickyNoteGroup">
@@ -76,9 +106,35 @@
                     <SourceLocation resid="taskpaneUrl" />
                   </Action>
                 </Control>
+
+                <!-- New: day marker control, opens a separate task pane -->
+                <Control xsi:type="Button" id="dayMarkerButton">
+                  <Label resid="dayButtonLabel" />
+                  <Supertip>
+                    <Title resid="dayButtonTitle" />
+                    <Description resid="dayButtonDescription" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="dayIcon16" />
+                    <bt:Image size="32" resid="dayIcon32" />
+                    <bt:Image size="80" resid="dayIcon80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <SourceLocation resid="dayPickerUrl" />
+                  </Action>
+                </Control>
               </Group>
             </OfficeTab>
           </ExtensionPoint>
+
+          <!-- New: strip-on-send hook -->
+          <ExtensionPoint xsi:type="LaunchEvent">
+            <LaunchEvents>
+              <LaunchEvent Type="OnMessageSend" FunctionName="onMessageSendHandler" SendMode="SoftBlock" />
+            </LaunchEvents>
+            <SourceLocation resid="onSendRuntime.Url" />
+          </ExtensionPoint>
+
         </DesktopFormFactor>
       </Host>
     </Hosts>
@@ -87,18 +143,26 @@
         <bt:Image id="icon16" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/assets/icon-16.png" />
         <bt:Image id="icon32" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/assets/icon-32.png" />
         <bt:Image id="icon80" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/assets/icon-80.png" />
+        <bt:Image id="dayIcon16" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/assets/day-icon-16.png" />
+        <bt:Image id="dayIcon32" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/assets/day-icon-32.png" />
+        <bt:Image id="dayIcon80" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/assets/day-icon-80.png" />
       </bt:Images>
       <bt:Urls>
         <bt:Url id="functionFile" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/taskpane.html" />
         <bt:Url id="taskpaneUrl" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/taskpane.html" />
+        <bt:Url id="dayPickerUrl" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/dayPicker.html" />
+        <bt:Url id="onSendRuntime.Url" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/onSend.html" />
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="groupLabel" DefaultValue="Sticky Notes" />
         <bt:String id="buttonLabel" DefaultValue="Add Note" />
         <bt:String id="buttonTitle" DefaultValue="Add Sticky Note" />
+        <bt:String id="dayButtonLabel" DefaultValue="Set Day" />
+        <bt:String id="dayButtonTitle" DefaultValue="Set Day Marker" />
       </bt:ShortStrings>
       <bt:LongStrings>
         <bt:String id="buttonDescription" DefaultValue="Add, edit, or remove a sticky note on this email." />
+        <bt:String id="dayButtonDescription" DefaultValue="Tag this email with a coloured day marker (Monday-Friday, Next Week, Future) so Kate can see at a glance when it needs actioning." />
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>
