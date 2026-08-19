@@ -67,22 +67,6 @@
     <Hosts>
       <Host xsi:type="MailHost">
 
-        <!--
-          Runtime used by the OnMessageSend event handler (onSend.js/html).
-          This is a separate, short-lived runtime from the task pane - it only
-          runs at the moment Harvey clicks Send, strips the day marker if
-          present, then lets the send continue.
-        -->
-        <Runtimes>
-          <Runtime resid="onSendRuntime.Url" lifetime="short">
-            <Override>
-              <Set>
-                <Requirement Name="Mailbox" MinVersion="1.15" />
-              </Set>
-            </Override>
-          </Runtime>
-        </Runtimes>
-
         <DesktopFormFactor>
           <FunctionFile resid="functionFile" />
 
@@ -126,14 +110,6 @@
             </OfficeTab>
           </ExtensionPoint>
 
-          <!-- New: strip-on-send hook -->
-          <ExtensionPoint xsi:type="LaunchEvent">
-            <LaunchEvents>
-              <LaunchEvent Type="OnMessageSend" FunctionName="onMessageSendHandler" SendMode="SoftBlock" />
-            </LaunchEvents>
-            <SourceLocation resid="onSendRuntime.Url" />
-          </ExtensionPoint>
-
         </DesktopFormFactor>
       </Host>
     </Hosts>
@@ -161,5 +137,49 @@
         <bt:String id="dayButtonDescription" DefaultValue="Tag this email with a coloured day marker (Monday-Friday, Next Week, Future) so Kate can see at a glance when it needs actioning." />
       </bt:LongStrings>
     </Resources>
+
+    <!--
+      NOTE FOR BRAD: The LaunchEvent extension point (our strip-on-send hook)
+      is only valid inside a nested Mail 1.1 VersionOverrides block - it
+      cannot sit inside the V1.0 host above alongside the ribbon button.
+      This nested block is what was missing/misplaced in the previous
+      manifest and is the most likely reason the first two uploads failed
+      validation.
+    -->
+    <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides/1.1" xsi:type="VersionOverridesV1_1">
+      <Requirements>
+        <bt:Sets DefaultMinVersion="1.15">
+          <bt:Set Name="Mailbox" />
+        </bt:Sets>
+      </Requirements>
+      <Hosts>
+        <Host xsi:type="MailHost">
+          <DesktopFormFactor>
+            <!--
+              Runtime used by the OnMessageSend event handler (onSend.js/html).
+              This is a separate, short-lived runtime from the task pane - it only
+              runs at the moment Harvey clicks Send, strips the day marker if
+              present, then lets the send continue.
+            -->
+            <Runtimes>
+              <Runtime resid="onSendRuntime.Url" lifetime="short">
+                <Override>
+                  <Set>
+                    <Requirement Name="Mailbox" MinVersion="1.15" />
+                  </Set>
+                </Override>
+              </Runtime>
+            </Runtimes>
+
+            <ExtensionPoint xsi:type="LaunchEvent">
+              <LaunchEvents>
+                <LaunchEvent Type="OnMessageSend" FunctionName="onMessageSendHandler" SendMode="SoftBlock" />
+              </LaunchEvents>
+              <SourceLocation resid="onSendRuntime.Url" />
+            </ExtensionPoint>
+          </DesktopFormFactor>
+        </Host>
+      </Hosts>
+    </VersionOverrides>
   </VersionOverrides>
 </OfficeApp>
