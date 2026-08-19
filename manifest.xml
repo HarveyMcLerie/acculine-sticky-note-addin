@@ -124,6 +124,7 @@
         <bt:Url id="taskpaneUrl" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/taskpane.html" />
         <bt:Url id="dayPickerUrl" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/dayPicker.html" />
         <bt:Url id="onSendRuntime.Url" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/onSend.html" />
+        <bt:Url id="onSendRuntime.JsUrl" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/onSend.js" />
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="groupLabel" DefaultValue="Sticky Notes" />
@@ -156,18 +157,14 @@
         <Host xsi:type="MailHost">
           <DesktopFormFactor>
             <!--
-              Runtime used by the OnMessageSend event handler (onSend.js/html).
-              This is a separate, short-lived runtime from the task pane - it only
-              runs at the moment Harvey clicks Send, strips the day marker if
-              present, then lets the send continue.
+              Runtime used by the OnMessageSend event handler.
+              resid points to the HTML wrapper (used by Outlook on the web,
+              Mac, and new Outlook on Windows). The Override points to the
+              plain .js file used by classic Outlook on Windows.
             -->
             <Runtimes>
-              <Runtime resid="onSendRuntime.Url" lifetime="short">
-                <Override>
-                  <Set>
-                    <Requirement Name="Mailbox" MinVersion="1.15" />
-                  </Set>
-                </Override>
+              <Runtime resid="onSendRuntime.Url">
+                <Override type="javascript" resid="onSendRuntime.JsUrl" />
               </Runtime>
             </Runtimes>
 
