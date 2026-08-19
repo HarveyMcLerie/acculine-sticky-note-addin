@@ -54,7 +54,6 @@
 
   <Rule xsi:type="RuleCollection" Mode="Or">
     <Rule xsi:type="ItemIs" ItemType="Message" FormType="Read" />
-    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Edit" />
   </Rule>
 
   <DisableEntityHighlighting>false</DisableEntityHighlighting>
@@ -115,9 +114,9 @@
                     <Description resid="dayButtonDescription" />
                   </Supertip>
                   <Icon>
-                    <bt:Image size="16" resid="dayIcon16" />
-                    <bt:Image size="32" resid="dayIcon32" />
-                    <bt:Image size="80" resid="dayIcon80" />
+                    <bt:Image size="16" resid="icon16" />
+                    <bt:Image size="32" resid="icon32" />
+                    <bt:Image size="80" resid="icon80" />
                   </Icon>
                   <Action xsi:type="ShowTaskpane">
                     <SourceLocation resid="dayPickerUrl" />
@@ -143,9 +142,6 @@
         <bt:Image id="icon16" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/assets/icon-16.png" />
         <bt:Image id="icon32" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/assets/icon-32.png" />
         <bt:Image id="icon80" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/assets/icon-80.png" />
-        <bt:Image id="dayIcon16" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/assets/day-icon-16.png" />
-        <bt:Image id="dayIcon32" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/assets/day-icon-32.png" />
-        <bt:Image id="dayIcon80" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/assets/day-icon-80.png" />
       </bt:Images>
       <bt:Urls>
         <bt:Url id="functionFile" DefaultValue="https://harveymclerie.github.io/acculine-sticky-note-addin/taskpane.html" />
